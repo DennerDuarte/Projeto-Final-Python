@@ -13,11 +13,12 @@ logger = logging.getLogger(__name__)
 # Lista explícita e ordenada das colunas que vão para cada tabela — usada
 # para garantir que o DataFrame tenha exatamente essas colunas (nem a mais,
 # nem a menos) antes de gravar, e na mesma ordem em que a tabela foi criada.
-_COLUNAS_RAW = ["cidade", "datetime", "temp_c", "umidade_pct", "precipitacao_mm", "vento_kmh"]
+_COLUNAS_RAW = ["cidade", "datetime", "temp_c", "umidade_pct", "precipitacao_mm", "vento_kmh", "sensacao_c"]
 _COLUNAS_DIARIO = [
     "cidade", "data", "temp_media", "temp_min", "temp_max", "umidade_media",
     "precipitacao_total", "vento_medio", "categoria_temp", "categoria_chuva",
     "media_movel_3d", "media_movel_7d", "ranking_temp_dia", "indice_conforto_c",
+    "sensacao_media", "sensacao_max",
 ]
 
 
@@ -56,6 +57,7 @@ class SQLiteRepository:
             Column("umidade_pct", Float),
             Column("precipitacao_mm", Float),
             Column("vento_kmh", Float),
+            Column("sensacao_c", Float),
         )
 
     def _tabela_diario(self) -> Table:
@@ -77,6 +79,8 @@ class SQLiteRepository:
             Column("media_movel_7d", Float),
             Column("ranking_temp_dia", Integer),
             Column("indice_conforto_c", Float),
+            Column("sensacao_media", Float),
+            Column("sensacao_max", Float),
         )
 
     def _upsert(self, tabela: Table, df: pd.DataFrame, colunas_pk: list[str]) -> None:
@@ -93,21 +97,21 @@ class SQLiteRepository:
         # dicts — um por linha — que é o formato que o SQLAlchemy espera
         # para inserir vários registros de uma vez.
         registros = df.to_dict(orient="records")
-        stmt = sqlite_upsert(tabela).values(registros)
-        # "Se colidir com uma chave primária já existente, atualize todas as
-        # colunas que NÃO são chave primária com os novos valores" — esse é
-        # o dialeto específico do SQLite para UPSERT (ON CONFLICT DO UPDATE).
         colunas_atualizaveis = [c.name for c in tabela.columns if c.name not in colunas_pk]
-        stmt = stmt.on_conflict_do_update(
-            index_elements=colunas_pk,
-            set_={c: getattr(stmt.excluded, c) for c in colunas_atualizaveis},
-        )
 
-        # engine.begin() abre uma transação e faz commit automático ao sair
-        # do "with" sem erro (ou rollback se algo lançar exceção) — evita
-        # deixar a escrita "pela metade" no banco.
+        # SQLite tem um limite de variáveis por consulta (SQLITE_MAX_VARIABLE_NUMBER = 32766).
+        # Com 7 cidades x 744 horas x 7 colunas = 36.456 parâmetros, ultrapassa o limite em um único INSERT.
+        # Por isso dividimos os registros em lotes (batch_size=1000).
+        batch_size = 1000
         with self.engine.begin() as conn:
-            conn.execute(stmt)
+            for i in range(0, len(registros), batch_size):
+                lote = registros[i : i + batch_size]
+                stmt = sqlite_upsert(tabela).values(lote)
+                stmt = stmt.on_conflict_do_update(
+                    index_elements=colunas_pk,
+                    set_={c: getattr(stmt.excluded, c) for c in colunas_atualizaveis},
+                )
+                conn.execute(stmt)
 
         logger.info("Upsert em '%s': %d linha(s)", tabela.name, len(registros))
 
@@ -159,6 +163,7 @@ if __name__ == "__main__":
         "umidade_pct": [80.0, 82.0],
         "precipitacao_mm": [0.0, 0.0],
         "vento_kmh": [10.2, 9.8],
+        "sensacao_c": [24.0, 23.5],
     })
     repo.save_raw(df_raw_mock)
 
@@ -177,6 +182,8 @@ if __name__ == "__main__":
         "media_movel_7d": [22.3],
         "ranking_temp_dia": [1],
         "indice_conforto_c": [22.3],
+        "sensacao_media": [23.8],
+        "sensacao_max": [24.0],
     })
     repo.save_daily(df_diario_mock)
 

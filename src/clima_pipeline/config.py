@@ -45,6 +45,7 @@ VARIAVEIS_HORARIAS = [
     "relative_humidity_2m",
     "precipitation",
     "wind_speed_10m",
+    "apparent_temperature",
 ]
 TIMEZONE = "America/Sao_Paulo"  # fuso usado para converter os horários devolvidos pela API
 
@@ -86,6 +87,20 @@ CIDADES = {
         "lon": -34.8770,
         "uf": "PE",
         "regiao": "Nordeste",
+    },
+    "belem": {
+        "nome_exibicao": "Belém",
+        "lat": -1.4558,
+        "lon": -48.4902,
+        "uf": "PA",
+        "regiao": "Norte",
+    },
+    "curitiba": {
+        "nome_exibicao": "Curitiba",
+        "lat": -25.4284,
+        "lon": -49.2733,
+        "uf": "PR",
+        "regiao": "Sul",
     },
 }
 
@@ -148,6 +163,6 @@ if __name__ == "__main__":
     # Entrada mockada: roda `python -m clima_pipeline.config` para testar
     # resolver_slug_cidade() isoladamente (slug, UF, nome de exibição e um
     # valor inexistente), sem precisar da API nem do banco.
-    entradas_mock = ["sao_paulo", "SP", "Rio de Janeiro", "cidade_inexistente"]
+    entradas_mock = ["sao_paulo", "SP", "Rio de Janeiro", "cidade_inexistente", "PA", "Curitiba", "belem"]
     for entrada in entradas_mock:
         print(f"{entrada} -> {resolver_slug_cidade(entrada)!r}")

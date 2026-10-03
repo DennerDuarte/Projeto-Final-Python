@@ -119,7 +119,7 @@ st.pyplot(fig)
 st.subheader("Comparativo entre cidades")
 variavel = st.selectbox(
     "Variável",
-    ["temp_media", "umidade_media", "precipitacao_total", "vento_medio", "indice_conforto_c"],
+    ["temp_media", "umidade_media", "precipitacao_total", "vento_medio", "indice_conforto_c", "sensacao_media"],
     index=0,
 )
 # Já temos os dados de todas as cidades selecionadas em `diario` (buscados
@@ -136,7 +136,7 @@ else:
 # --- Tabela final: os mesmos dados do gráfico 1, em formato de tabela ---
 st.subheader("Tabela agregada (visão diária)")
 colunas_tabela = [
-    "nome_exibicao", "data", "temp_media", "temp_min", "temp_max", "umidade_media",
+    "nome_exibicao", "data", "temp_media", "temp_min", "temp_max", "sensacao_media", "umidade_media",
     "precipitacao_total", "categoria_temp", "categoria_chuva", "indice_conforto_c",
 ]
 st.dataframe(

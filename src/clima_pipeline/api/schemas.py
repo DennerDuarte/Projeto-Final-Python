@@ -51,3 +51,5 @@ class ClimaDiarioOut(BaseModel):
     media_movel_7d: float
     ranking_temp_dia: int
     indice_conforto_c: float
+    sensacao_media: float
+    sensacao_max: float

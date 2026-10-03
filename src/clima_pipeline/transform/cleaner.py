@@ -17,6 +17,7 @@ _RENOMEIA_COLUNAS = {
     "relative_humidity_2m": "umidade_pct",
     "precipitation": "precipitacao_mm",
     "wind_speed_10m": "vento_kmh",
+    "apparent_temperature": "sensacao_c",
 }
 
 # Colunas em que faz sentido "preencher o buraco" com interpolação linear
@@ -27,7 +28,7 @@ _RENOMEIA_COLUNAS = {
 # nomes finais (temp_c/umidade_pct) — usar os nomes finais aqui faria a
 # interpolação nunca rodar, porque a coluna com esse nome ainda não existe
 # neste ponto do pipeline.
-_COLUNAS_INTERPOLAVEIS = ["temperature_2m", "relative_humidity_2m"]
+_COLUNAS_INTERPOLAVEIS = ["temperature_2m", "relative_humidity_2m", "apparent_temperature"]
 
 
 class ClimaCleaner:
@@ -58,7 +59,7 @@ class ClimaCleaner:
         # Devolve só as colunas que o resto do projeto (API, banco, dashboard)
         # espera, já ordenado por cidade e data/hora — deixa o DataFrame
         # pronto para ser concatenado com o de outras cidades em pipeline.py.
-        colunas = ["cidade", "datetime", "temp_c", "umidade_pct", "precipitacao_mm", "vento_kmh"]
+        colunas = ["cidade", "datetime", "temp_c", "umidade_pct", "precipitacao_mm", "vento_kmh","sensacao_c"]
         return df[colunas].sort_values(["cidade", "datetime"]).reset_index(drop=True)
 
     def _remover_duplicatas(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -129,6 +130,7 @@ if __name__ == "__main__":
             # para estabelecer uma faixa estável; com poucos pontos, o
             # próprio outlier distorce os quartis e passa despercebido.
             "wind_speed_10m": [10.2, 9.8, 11.0, 9.5, 10.5, 10.0, 9.9, 500.0],
+            "apparent_temperature": [24.0, 23.5, None, 23.1, 22.8, 23.6, 23.2, 23.4],
         }
     }
     print(ClimaCleaner().clean(raw_mock, city="sao_paulo"))

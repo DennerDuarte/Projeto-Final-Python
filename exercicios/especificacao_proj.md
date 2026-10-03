@@ -454,13 +454,13 @@ Depois reinicie a API e o dashboard (ou clique em "Rerun" no dashboard).
 
 Marque cada item quando conferir. Tire um **print** de cada um para a entrega.
 
-- [ ] O pipeline rodou para as **7 cidades** e terminou com "Pipeline concluído".
-- [ ] No banco, a tabela `clima_diario` tem `sensacao_media` preenchida para Belém:
+- [X] O pipeline rodou para as **7 cidades** e terminou com "Pipeline concluído".
+- [X] No banco, a tabela `clima_diario` tem `sensacao_media` preenchida para Belém:
       ```bash
       sqlite3 data/clima.db "SELECT cidade, data, temp_media, sensacao_media FROM clima_diario WHERE cidade='belem' LIMIT 5;"
       ```
-- [ ] Em <http://127.0.0.1:8000/docs>, o endpoint `/cidades` mostra 7 cidades.
-- [ ] Em `/clima/diario`, com `cidade = PR`, aparecem os dados de Curitiba com `sensacao_media` e `sensacao_max`.
+- [X] Em <http://127.0.0.1:8000/docs>, o endpoint `/cidades` mostra 7 cidades.
+- [X] Em `/clima/diario`, com `cidade = PR`, aparecem os dados de Curitiba com `sensacao_media` e `sensacao_max`.
 - [ ] No dashboard, Belém e Curitiba aparecem na lista de cidades.
 - [ ] No dashboard, `sensacao_media` aparece no seletor do gráfico comparativo e a linha é desenhada.
 - [ ] Os comandos `python -m` de `cleaner`, `aggregator` e `sqlite_repository` rodam sem erro.
