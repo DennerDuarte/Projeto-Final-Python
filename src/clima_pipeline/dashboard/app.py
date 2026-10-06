@@ -53,6 +53,13 @@ def carregar_diario(base_url: str, slug: str, inicio: dt.date, fim: dt.date) -> 
         df["data"] = pd.to_datetime(df["data"])
     return df
 
+@st.cache_data(ttl=60)
+def carregar_resumo(base_url: str, slug: str, inicio: dt.date, fim: dt.date) -> dict:
+    """Busca o resumo do período de UMA cidade na API. Cacheada por 1 min."""
+    params = {"cidade": slug, "inicio": str(inicio), "fim": str(fim)}
+    resposta = requests.get(f"{base_url}/clima/resumo", params=params, timeout=10)
+    resposta.raise_for_status()  # se a API devolver erro (ex.: 404), lança uma exceção
+    return resposta.json()       # o JSON da resposta vira um dicionário Python
 
 # Primeira chamada à API: se ela falhar (API fora do ar, URL errada), mostra
 # uma mensagem amigável e para a execução do script aqui (st.stop()) em vez
@@ -97,6 +104,32 @@ if diario.empty:
     st.stop()
 
 diario["nome_exibicao"] = diario["cidade"].map(nome_por_slug)
+
+# --- Resumo do período: um grupo de cartões (st.metric) para cada cidade ---
+st.subheader("Resumo do período")
+
+# st.columns(n) divide a tela em n colunas lado a lado, uma para cada cidade
+colunas_tela = st.columns(len(slugs_selecionados))
+
+# zip() percorre as duas listas juntas: a 1ª coluna com a 1ª cidade, a 2ª com a 2ª...
+for coluna, slug in zip(colunas_tela, slugs_selecionados):
+    with coluna:  # tudo dentro deste "with" aparece nesta coluna da tela
+        st.markdown(f"**{nome_por_slug[slug]}**")
+        try:
+            resumo = carregar_resumo(api_base_url, slug, inicio, fim)
+        except requests.RequestException as erro:
+            st.warning(f"Sem resumo: {erro}")
+            continue  # pula para a próxima cidade
+
+        st.metric("Temperatura média", f"{resumo['temp_media_periodo']:.1f} °C")
+        st.metric(
+            "Máxima do período",
+            f"{resumo['temp_max_absoluta']:.1f} °C",
+            help=f"Registrada em {resumo['dia_mais_quente']}",
+        )
+        st.metric("Chuva total", f"{resumo['precipitacao_total_periodo']:.1f} mm")
+        st.metric("Dias chuvosos", f"{resumo['dias_chuvosos']}")
+        st.metric("Sensação média", f"{resumo['sensacao_media_periodo']:.1f} °C")
 
 # --- Gráfico 1: temperatura diária + média móvel, uma linha por cidade ---
 st.subheader("Temperatura ao longo do tempo (diária vs. média móvel de 7 dias)")

@@ -10,3 +10,8 @@
 ---------------
 
 .. automodule:: clima_pipeline.transform.aggregator
+
+``resumo``
+----------
+
+.. automodule:: clima_pipeline.transform.resumo

@@ -53,3 +53,20 @@ class ClimaDiarioOut(BaseModel):
     indice_conforto_c: float
     sensacao_media: float
     sensacao_max: float
+
+class ResumoOut(BaseModel):
+    """Resumo do período de uma cidade, no formato devolvido por GET /clima/resumo."""
+
+    cidade: str
+    inicio: dt.date
+    fim: dt.date
+    dias_analisados: int
+    temp_media_periodo: float
+    temp_max_absoluta: float
+    dia_mais_quente: dt.date
+    temp_min_absoluta: float
+    dia_mais_frio: dt.date
+    precipitacao_total_periodo: float
+    dias_chuvosos: int
+    sensacao_media_periodo: float
+    categoria_predominante: str
